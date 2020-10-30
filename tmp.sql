@@ -1,0 +1,1 @@
+CREATE DATABASE soap_store;

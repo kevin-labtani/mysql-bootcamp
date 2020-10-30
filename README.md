@@ -35,7 +35,7 @@ help;
 to show the databases:
 
 ```sql
-show databases;
+SHOW DATABASES;
 ```
 
 to show user hostname:
@@ -44,3 +44,110 @@ to show user hostname:
 select @@hostname;
 ```
 
+## Creating Databases and tables
+
+to create a DB (better to use snake cases):
+
+```sql
+CREATE DATABASE soap_store;
+```
+
+to delete a DB:
+
+```sql
+DROP DATABASE soap_store;
+```
+
+to use a DB:
+
+```sql
+USE soap_store;
+```
+
+to show the currently used DB:  
+returns NULL if we're not currently using any db
+
+```sql
+SELECT database();
+```
+
+### Tables
+
+tables are a collection of related data held in a structured format within a database.
+
+tables has Columns (headers) and rows (the actual data)
+
+#### Datatypes
+
+3 subsets:
+
+- Numeric Types
+- String Types
+- Date Types
+
+to represent numbers, we'll work with INT; to represent text, we'll work with VARCHAR
+
+INT represents a whole number up to ~4 billion  
+VARCHAR stands for Variable-Length String, between 1 and 255 characters (CHAR is fixed length), use `varchar(15)` to specify a limit of 15 characters.
+
+to create a table (table names should be pluralized)
+
+```sql
+CREATE TABLE tablename:
+  (
+    columns_name data_type,
+    columns_name data_type
+  );
+
+```
+
+eg:
+
+```sql
+CREATE TABLE cats
+  (
+    name VARCHAR(100),
+    age INT
+  );
+
+```
+
+to show the tables in our currently used database:
+
+```sql
+SHOW TABLES;
+```
+
+to show the columns from a table in our currently used database:
+
+```sql
+SHOW COLUMNS FROM <tablename>;
+-- or
+DESC <tablename>;
+```
+
+to delete a table in our currently used database:
+
+```sql
+DROP TABLE <tablename>;
+```
+
+### Challenge:
+
+1. create a _pastries_ table with 2 columns: name (max 50chars) and quantity
+2. inspect the table/columns in the CLI
+3. delete the table
+
+```sql
+CREATE TABLE pastries
+  (
+    name VARCHAR(50),
+    quantity int
+  );
+
+SHOW TABLES;
+
+DESC pastries;
+
+DROP TABLE pastries;
+```
