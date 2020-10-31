@@ -399,7 +399,7 @@ we can specify aliases with _AS_
 SELECT cat_id AS id, name FROM cats;
 ```
 
-# Update
+### Update
 
 if we want to update the cat's breed from "Tabby" to "Shorthair":
 
@@ -415,6 +415,15 @@ update Misty's age to 14:
 UPDATE cats
 SET age=14
 WHERE name="Misty";
+```
+
+to update multiple rows:
+
+```sql
+UPDATE shirts
+SET shirt_size="XS",
+    color="off white"
+WHERE color="white";
 ```
 
 ### Challenge
@@ -470,3 +479,5 @@ DELETE FROM cats;
 
 tip: for booth update and delete, try running a select statement beofre running the update/delete statement, to make sure there are no errors as there's no undo button!
 eg: run `SELECT * FROM cats WHERE age=4;` beofre running `DELETE FROM cats WHERE age=4;`
+
+##
