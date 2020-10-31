@@ -317,3 +317,156 @@ CREATE TABLE employees2(
   current_status VARCHAR(100) NOT NULL DEFAULT "employed"
 );
 ```
+
+## CRUD Operations
+
+our starter databse:
+
+```sql
+CREATE TABLE cats
+  (
+     cat_id INT NOT NULL AUTO_INCREMENT,
+     name   VARCHAR(100),
+     breed  VARCHAR(100),
+     age    INT,
+     PRIMARY KEY (cat_id)
+  );
+DESC cats;
+
+INSERT INTO cats(name, breed, age)
+VALUES ('Ringo', 'Tabby', 4),
+       ('Cindy', 'Maine Coon', 10),
+       ('Dumbledore', 'Maine Coon', 11),
+       ('Egg', 'Persian', 4),
+       ('Misty', 'Tabby', 13),
+       ('George Michael', 'Ragdoll', 9),
+       ('Jackson', 'Sphynx', 7);
+```
+
+### Read
+
+we can read data from our tables using SELECT.
+
+```sql
+SELECT * FROM cats;
+```
+
+The \* means "give me all the Columns"
+
+if we want only the name column form the table cats:
+
+```sql
+SELECT name FROM cats;
+```
+
+if we want both name and age form the table cats:
+
+```sql
+SELECT name, age FROM cats;
+```
+
+### WHERE
+
+the WHERE clause allows us to get specific
+
+```sql
+SELECT * FROM cats WHERE age=4;
+
+SELECT * FROM cats WHERE name="Egg";
+```
+
+nb: by default it's case insensitive `WHERE name="Egg"` is the same as `WHERE name="EGg"`
+
+### Challenge
+
+1. write the SQL that selects only the cat's id
+1. write the SQL that selects the cat's name and breed
+1. write the SQL that selects just the Tabby cats
+1. write the SQL that selects the cat's whose id is the same as their age
+
+```sql
+SELECT cat_id FROM cats;
+SELECT name, breed FROM cats;
+SELECT * FROM cats WHERE breed="Tabby";
+SELECT * FROM cats WHERE age=cat_id;
+```
+
+### Aliases
+
+we can specify aliases with _AS_
+
+```sql
+SELECT cat_id AS id, name FROM cats;
+```
+
+# Update
+
+if we want to update the cat's breed from "Tabby" to "Shorthair":
+
+```sql
+UPDATE cats
+SET breed="Shorthair"
+WHERE breed="Tabby";
+```
+
+update Misty's age to 14:
+
+```sql
+UPDATE cats
+SET age=14
+WHERE name="Misty";
+```
+
+### Challenge
+
+1. change Jackson name to Jack
+1. change Ringo's breed to "British Shorthair"
+1. update both Maine Coon's age to be 12
+
+```sql
+UPDATE cats
+SET name="Jack"
+WHERE name="Jackson";
+
+UPDATE cats
+SET breed="British Shorthair"
+WHERE name="Ringo";
+
+UPDATE cats
+SET age=12
+WHERE breed="Maine Coon";
+```
+
+### Delete
+
+to delete any cats with the name Egg:
+
+```sql
+DELETE FROM cats
+WHERE name="Egg";
+```
+
+to delete all the entries in the table cats:
+
+```sql
+DELETE FROM cats;
+```
+
+### Challenge
+
+1. delete all cats that are 4 years old
+1. delete cats whose age is the same as their id
+1. delete all cats
+
+```sql
+DELETE FROM cats
+WHERE age=4;
+
+DELETE FROM cats
+WHERE age=cat_id;
+
+DELETE FROM cats;
+```
+
+tip: for booth update and delete, try running a select statement beofre running the update/delete statement, to make sure there are no errors as there's no undo button!
+eg: run `SELECT * FROM cats WHERE age=4;` beofre running `DELETE FROM cats WHERE age=4;`
