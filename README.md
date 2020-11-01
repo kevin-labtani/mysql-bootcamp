@@ -480,4 +480,12 @@ DELETE FROM cats;
 tip: for booth update and delete, try running a select statement beofre running the update/delete statement, to make sure there are no errors as there's no undo button!
 eg: run `SELECT * FROM cats WHERE age=4;` beofre running `DELETE FROM cats WHERE age=4;`
 
-##
+## String Functions
+
+### Running SQL files
+
+use `source path_to_file/<file_name.sql>;` to run `.sql` files from the MySQL command line, eg:
+
+```sql
+source books.sql;
+```
