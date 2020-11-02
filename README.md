@@ -482,6 +482,8 @@ eg: run `SELECT * FROM cats WHERE age=4;` beofre running `DELETE FROM cats WHERE
 
 ## String Functions
 
+nb: the db is in `books.sql`
+
 ### Running SQL files
 
 use `source path_to_file/<file_name.sql>;` to run `.sql` files from the MySQL command line, eg:
@@ -489,3 +491,170 @@ use `source path_to_file/<file_name.sql>;` to run `.sql` files from the MySQL co
 ```sql
 source books.sql;
 ```
+
+### CONCAT
+
+to combine multiple columns, we can use CONCAT(column, 'text', anotherColumn, 'anotherText')
+
+```sql
+SELECT CONCAT(author_fname, " ",author_lname) AS full_name FROM books;
+```
+
+to concatenate multiple fields with the same separator, we can use CONCAT_WS
+
+```sql
+SELECT CONCAT_WS("-",title, author_fname,author_lname) AS full_name FROM books;
+```
+
+### SUBSTRING
+
+to return only part of a string we can use SUBSTRING
+
+SQL is 1 indexed
+
+```sql
+SELECT SUBSTRING(author_fname, 1, 3) FROM books;
+```
+
+to get the last 3 letters:
+
+```sql
+SELECT SUBSTRING(author_fname, -3) FROM books;
+```
+
+SUBSTR also works as a shortcut
+
+### REPLACE
+
+write the SQL that returns the first 10 letters form the book's title, followed by "...", aliased as "short title"
+
+```sql
+SELECT
+  CONCAT
+    (
+      SUBSTRING(title, 1, 10),
+      "..."
+    ) AS "short title"
+FROM books;
+```
+
+### REPLACE
+
+to replace part of strings, use REPLACE
+
+```sql
+SELECT REPLACE(title, 'e', '3') FROM books;
+```
+
+### REVERSE
+
+to reverse a string, use REVERSE
+
+```sql
+SELECT REVERSE(title) FROM books;
+```
+
+### CHAR LENGTH
+
+to count characters in strings, use CHAR_LENGTH
+
+```sql
+SELECT CHAR_LENGTH(title) FROM books;
+```
+
+### UPPER and LOWER
+
+```sql
+SELECT UPPER(author_fname), LOWER(author_lname) FROM books;
+```
+
+### CHALLENGE
+
+1. reverse and uppercase the following sentence "Why does my cat look at me with such hatred?"
+
+- answer
+
+```sql
+SELECT REVERSE(UPPER("Why does my cat look at me with such hatred?"));
+```
+
+1. what does this print out?
+
+```sql
+SELECT
+  REPLACE
+    (
+      CONCAT("I", " ", "like", " ", "cats"),
+      " ",
+      "-"
+    ) ;
+```
+
+- answer
+  "I-like-cats"
+
+1. write the SQL that replaces spaces in book titles with '->'
+
+- answer
+
+```sql
+SELECT
+  REPLACE(title, " ", "->")
+FROM books;
+```
+
+1. write the SQL that returns author's first name printed in a column titled forwards and author's first name printed backwards in a second column titled backwards
+
+- answer
+
+```sql
+SELECT
+  author_fname AS forwards,
+  REVERSE(author_fname) AS backwards
+FROM books;
+```
+
+1. write the SQL that returns the full authors name in caps in a column titled "full name in caps"
+
+- answer
+
+```sql
+SELECT
+  UPPER(CONCAT(author_fname," ",author_lname)) AS "full name in caps"
+FROM books;
+```
+
+1. write the SQL that returns "**title** was released in **released_year**" in a column titled "blurb" for all books
+
+- answer
+
+```sql
+SELECT
+  CONCAT(title," was release in ",released_year) AS "blurb"
+FROM books;
+```
+
+1. write the SQL that returns the book title and the character count for each title in a col namewrite the SQL that returnsd "character count"
+
+- answer
+
+```sql
+SELECT
+  title,
+  CHAR_LENGTH(title) AS "character count"
+FROM books;
+```
+
+1. write the SQL that returns "first 10 chars of title +..." as a col named "short title", "lastName,firstName" as a col named "author" and "quantity in stock" a col named as "quantity"
+
+- answer
+
+```sql
+SELECT
+  CONCAT(SUBSTRING(title, 1, 10), "...") AS "short title",
+  CONCAT(author_lname,",",author_fname) AS  "author",
+  CONCAT(stock_quantity," in stock") AS  "quantity"
+FROM books;
+```
+
+nb: CONCAT can be used with int, it just stringify it.
