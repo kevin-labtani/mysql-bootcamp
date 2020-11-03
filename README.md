@@ -658,3 +658,222 @@ FROM books;
 ```
 
 nb: CONCAT can be used with int, it just stringify it.
+
+## Refining Selections
+
+### DISTINCT
+
+use DISTINCT to ge tonly unique values
+
+```sql
+SELECT
+  DISTINCT author_lname
+FROM books;
+```
+
+to return distinct full names:
+
+```sql
+SELECT
+  DISTINCT CONCAT(author_fname ,author_lname)
+FROM books;
+```
+
+or
+
+```sql
+SELECT
+  DISTINCT author_fname ,author_lname
+FROM books;
+```
+
+### ORDER BY
+
+order results with ORDER BY
+
+```sql
+SELECT
+  author_lname
+FROM books
+ORDER BY author_lname;
+```
+
+to order in descending order, use
+
+```sql
+SELECT
+  author_lname
+FROM books
+ORDER BY author_lname DESC;
+```
+
+the following query will order by author_fname
+
+```sql
+SELECT
+  title, author_fname, author_lname
+FROM books
+ORDER BY 2;
+```
+
+the following query will order by author_fname and then by author_lname
+
+```sql
+SELECT
+  title, author_fname, author_lname
+FROM books
+ORDER BY author_fname, author_lname;
+```
+
+### LIMIT
+
+use LIMIT to specify how many results we want
+
+```sql
+SELECT
+  title
+FROM books
+ORDER BY released_year
+LIMIT 3;
+```
+
+the following will return the 3rd to 7th most recent books in the table, when there are 2 numbers after limit, the first denotes the starting index (offset)
+
+```sql
+SELECT
+  title, released_year
+FROM books
+ORDER BY released_year DESC
+LIMIT 3,5;
+```
+
+to retrieve all rows form a certain offset to the end results, we have to use a large number as 2nd parameter
+
+```sql
+SELECT
+  *
+FROM books
+LIMIT 3,9999999;
+```
+
+### LIKE
+
+use LIKE for better searching, as we use WHERE but not for exact matches
+
+**%** is a wildcard character
+
+```sql
+SELECT
+  *
+FROM books
+WHERE author_fname LIKE "%da%";
+```
+
+**\_** is also a wildcard, the following query will returns all books where the stock is at least 1000, so the **\_** wildcard specifies exactly one characters
+
+```sql
+SELECT
+  title, stock_quantity
+FROM books
+WHERE stock_quantity LIKE "____";
+```
+
+\ is the sql escape characters
+
+to return the books with a % in the title
+
+```sql
+SELECT
+  title
+FROM books
+WHERE title LIKE "%\%%";
+```
+
+to return the books with a \_ in the title
+
+```sql
+SELECT
+  title
+FROM books
+WHERE title LIKE "%\_%";
+```
+
+### CHALLENGE
+
+1. write the SQL that selects all the titles with "stories" in them
+
+- answer
+
+```sql
+SELECT
+  *
+FROM books
+WHERE title LIKE "%stories%";
+```
+
+1. write the SQL that finds the longest book
+
+- answer
+
+```sql
+SELECT
+  *
+FROM books
+ORDER BY pages DESC
+LIMIT 1;
+```
+
+1. write the SQL that print a summary containing the "title - year" for the 3 most recent books, as a column named "summary"
+
+- answer
+
+```sql
+SELECT
+  CONCAT(title, " - ", released_year) AS summary
+FROM books
+ORDER BY released_year DESC
+LIMIT 3;
+```
+
+1. write the SQL that selects all the titles and author's last name where the author's last name has a space in it
+
+- answer
+
+```sql
+SELECT
+  title, author_lname
+FROM books
+WHERE author_lname LIKE "% %";
+```
+
+1. write the SQL that finds the 3 books with the lowest stock, select the title, year and stock
+
+- answer
+
+```sql
+SELECT
+  title, released_year, stock_quantity
+FROM books
+ORDER BY stock_quantity
+LIMIT 3;
+```
+
+1. write the SQL that returns the title and author's last name, sorted by last name and then by title
+
+- answer
+
+```sql
+SELECT
+  title, author_lname
+FROM books
+ORDER BY author_lname, title;
+```
+
+or
+
+```sql
+SELECT
+  title, author_lname
+FROM books
+ORDER BY 2, 1;
+```
