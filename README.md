@@ -568,7 +568,7 @@ SELECT CHAR_LENGTH(title) FROM books;
 SELECT UPPER(author_fname), LOWER(author_lname) FROM books;
 ```
 
-### CHALLENGE
+### Challenge
 
 1. reverse and uppercase the following sentence "Why does my cat look at me with such hatred?"
 
@@ -798,7 +798,7 @@ FROM books
 WHERE title LIKE "%\_%";
 ```
 
-### CHALLENGE
+### Challenge
 
 1. write the SQL that selects all the titles with "stories" in them
 
@@ -876,4 +876,250 @@ SELECT
   title, author_lname
 FROM books
 ORDER BY 2, 1;
+```
+
+## Aggregate Functions
+
+### COUNT
+
+to COUNT how many rows there are in a table, use COUNT
+
+```sql
+SELECT
+  COUNT(*)
+FROM books;
+```
+
+to count how many distinct authors there are in the table with
+
+```sql
+SELECT
+  COUNT(DISTINCT author_lname, author_fname)
+FROM books;
+```
+
+### GROUP BY
+
+GROUP BY summarizes or aggregates identical data into single rows
+
+the following will return one "super row" for each author_lname
+
+```sql
+SELECT
+  title, author_lname
+FROM books
+GROUP BY author_lname;
+```
+
+so, while with the prev query we'll only see one book for each author,
+we can use this to eg. count how many books each author has writen
+
+```sql
+SELECT
+  author_fname, author_lname, COUNT(*)
+FROM books
+GROUP BY author_lname, author_fname;
+```
+
+to get a table of how many books were released every year, use
+
+```sql
+SELECT
+  released_year, COUNT(*)
+FROM books
+GROUP BY released_year;
+```
+
+### MIN & MAX
+
+use MIN and MAX to find the mininmum and maximum value in a table
+
+to find the first year any books was released
+
+```sql
+SELECT
+  MIN(released_year)
+FROM books;
+```
+
+to find the longest book
+
+```sql
+SELECT
+  MAX(pages)
+FROM books;
+```
+
+to find the title of the longest book:
+
+this doesn't work!!!
+
+```sql
+SELECT
+  MAX(pages), title
+FROM books;
+```
+
+we could use
+
+```sql
+SELECT
+  pages, title
+FROM books
+ORDER BY pages DESC
+LIMIT 1;
+```
+
+or a subquery,
+
+### SUBQUERIES
+
+we can run a query within a query
+
+```sql
+SELECT pages, title FROM books
+WHERE pages = (SELECT MAX(pages)
+                  FROM books);
+```
+
+### MIN & MAX with Groups By
+
+we can use MIN and MAX like we used COUNT with GROUP BY
+
+to find the year each author published their first book
+
+```sql
+SELECT
+  author_fname, author_lname, MIN(released_year)
+FROM books
+GROUP BY author_fname, author_lname;
+```
+
+to find the longest page count for each author
+
+```sql
+SELECT
+  author_fname, author_lname, MAX(pages)
+FROM books
+GROUP BY author_fname, author_lname;
+```
+
+### SUM
+
+to add things together, use SUM
+
+to get the sum of al lthe pages of all the books in the table
+
+```sql
+SELECT
+  SUM(pages)
+FROM books;
+```
+
+to sum all pages each author has written
+
+```sql
+SELECT
+  author_fname, author_lname, SUM(pages)
+FROM books
+GROUP BY author_fname, author_lname;
+```
+
+### AVG
+
+to average things together, use AVG  
+AVG returns 4 decimal points
+
+```sql
+SELECT
+  AVG(pages)
+FROM books;
+```
+
+to calculate the average stock quantity for books released in the same year
+
+```sql
+SELECT
+  released_year, AVG(stock_quantity)
+FROM books
+GROUP BY released_year;
+```
+
+### Challenge
+
+1. write the SQL that returns the number of books in the table
+
+- answer
+
+```sql
+SELECT
+  COUNT(*)
+FROM books;
+```
+
+1. write the SQL that returns how many books where released in each year
+
+- answer
+
+```sql
+SELECT
+  released_year, COUNT(*)
+FROM books
+GROUP BY released_year;
+```
+
+1. write the SQL that returns the total number of books in stock
+
+- answer
+
+```sql
+SELECT
+   SUM(stock_quantity)
+FROM books;
+```
+
+1. write the SQL that returns the average released_year for each author
+
+- answer
+
+```sql
+SELECT
+   author_fname, author_lname, AVG(released_year)
+FROM books
+GROUP BY author_fname, author_lname;
+```
+
+1. write the SQL that returns the full name of the author who wrote the longest book
+
+- answer
+
+```sql
+SELECT
+   CONCAT(author_fname, " ",  author_lname) AS full_name
+FROM books
+ORDER BY pages DESC
+LIMIT 1;
+```
+
+or
+
+```sql
+SELECT
+   CONCAT(author_fname, " ", author_lname) AS full_name
+FROM books
+WHERE pages = (SELECT MAX(pages)
+                  FROM books);
+```
+
+1. trick question:
+
+- answer
+
+```sql
+SELECT
+   released_year as "year",
+   COUNT(*) AS "# books",
+   AVG(pages) AS "avg pages"
+FROM books
+GROUP BY released_year;
 ```
