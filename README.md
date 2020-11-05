@@ -1123,3 +1123,279 @@ SELECT
 FROM books
 GROUP BY released_year;
 ```
+
+## Data Types
+
+### CHAR & VARCHAR
+
+CHAR has fixed length
+
+in the following table, if we try to insert dogs with a name loger than 5 chars it'll be truncated or cause an error if in strict mode, if we try to insert a name shorter than 5 characters, it will be right-padded with spaces, nb. when we go select the value, the spaces from the extra padding are removed!  
+if we try to answer a breed longer than 10 chars, the same behavior will occur too (truncation or error)
+
+```sql
+CREATE TABLE dogs (name CHAR(5), breed VARCHAR(10));
+
+INSERT INTO dogs (name, breed) VALUES ('bob', 'beagle');
+
+INSERT INTO dogs (name, breed) VALUES ('robby', 'corgi');
+
+INSERT INTO dogs (name, breed) VALUES ('Princess Jane', 'Retriever');
+
+SELECT * FROM dogs;
+
+INSERT INTO dogs (name, breed) VALUES ('Princess Jane', 'Retrievesadfdsafdasfsafr');
+
+SELECT * FROM dogs;
+```
+
+CHAR is faster for fixed length text, so good to use with yes/no flags (Y/N), US states abbreviatoins (CA, NY) or sex (M/F)
+
+### DECIMAL
+
+DECIMAL is fixed-point type and calculations are exact
+
+to create a decimal number we can use DECIMAL(x,y) with x as total number of digits and y as th enumber of digits after the decimal point
+
+if we try to insert a number greater than the max, we'll an error ot it'll be rounded down, if we try to insert a number with more digits after the decimal separator than the max allowed it'll get rounded up
+
+```sql
+CREATE TABLE items(price DECIMAL(5,2));
+
+INSERT INTO items(price) VALUES(7);
+
+INSERT INTO items(price) VALUES(7987654);
+
+INSERT INTO items(price) VALUES(34.88);
+
+INSERT INTO items(price) VALUES(34.2989999);
+
+SELECT * FROM items;
+```
+
+### FLOAT & DOUBLE
+
+FLOAT & DOUBLE are floating-point types and calculations are approximate, but they can store large numbers using less space
+
+DOUBLE is basically a bigger, more precise float
+
+| DATA Type | Memory Needed | Precision Issues |
+| --------- | ------------- | ---------------- |
+| FLOAT     | 4 Bytes       | after ~7 digits  |
+| DOUBLE    | 8 Bytes       | after ~15 digits |
+
+```sql
+CREATE TABLE thingies (price FLOAT);
+
+INSERT INTO thingies(price) VALUES (88.45);
+INSERT INTO thingies(price) VALUES (8877.45);
+INSERT INTO thingies(price) VALUES (8877665544.45);
+
+SELECT * FROM thingies;
+```
+
+more than 7 digits on the last one, so we run into precision issues
+
+| price      |
+| ---------- |
+| 88.45      |
+| 8877.45    |
+| 8877670000 |
+
+So which do we use? use decimal, esp. if we need the precision
+
+### DATE, TIME & DATETIME
+
+- DATE stores date but no time, ``YYYY-MM-DD` format
+- TIME stores time but no date, ``HH:MM:SS` format
+- DATETIME stores date and time, ``YYYY-MM-DD HH:MM:SS` format
+
+```sql
+
+CREATE TABLE people (name VARCHAR(100), birthdate DATE, birthtime TIME, birthdt DATETIME);
+
+INSERT INTO people (name, birthdate, birthtime, birthdt)
+VALUES('Padma', '1983-11-11', '10:07:35', '1983-11-11 10:07:35');
+
+INSERT INTO people (name, birthdate, birthtime, birthdt)
+VALUES('Larry', '1943-12-25', '04:10:42', '1943-12-25 04:10:42');
+
+SELECT * FROM people;
+```
+
+| name  | birthdate  | birthtime | birthdt             |
+| ----- | ---------- | --------- | ------------------- |
+| Padma | 1983-11-11 | 10:07:35  | 1983-11-11 10:07:35 |
+| Larry | 1943-12-25 | 04:10:42  | 1943-12-25 04:10:42 |
+
+### CURDATE, CURTIME & NOW
+
+- CURDATE() gives the current date
+- CURTIME() gives the current time
+- NOW() gives the current date and time
+
+nb: same table as last section
+
+```sql
+INSERT INTO people (name, birthdate, birthtime, birthdt)
+VALUES('Toaster', CURDATE(), CURTIME(), NOW());
+
+SELECT * FROM people;
+```
+
+| name    | birthdate  | birthtime | birthdt             |
+| ------- | ---------- | --------- | ------------------- |
+| Padma   | 1983-11-11 | 10:07:35  | 1983-11-11 10:07:35 |
+| Larry   | 1943-12-25 | 04:10:42  | 1943-12-25 04:10:42 |
+| Toaster | 2020-11-05 | 13:40:52  | 2020-11-05 13:40:52 |
+
+### Formatting Dates
+
+get the day, the name of the day, th eday of the week, the day of the year, the month, the name of the month from a DATE or DATETIME
+
+```sql
+SELECT name, DAY(birthdate) FROM people;
+SELECT name, birthdate, DAY(birthdate) FROM people;
+SELECT name, birthdate, DAYNAME(birthdate) FROM people;
+SELECT name, birthdate, DAYOFWEEK(birthdate) FROM people;
+SELECT name, birthdate, DAYOFYEAR(birthdate) FROM people;
+SELECT name, birthdt, MONTH(birthdt) FROM people;
+SELECT name, birthdt, MONTHNAME(birthdt) FROM people;
+```
+
+get the hour, the minute for a TIME or DATETIME data type
+
+```sql
+SELECT name, birthtime, HOUR(birthtime) FROM people;
+SELECT name, birthtime, MINUTE(birthtime) FROM people;
+```
+
+use DATE_FORMAT to format a date nicely with specifiers
+
+```sql
+SELECT DATE_FORMAT(birthdt, 'Was born on a %W') FROM people;
+SELECT DATE_FORMAT(birthdt, '%m/%d/%Y') FROM people;
+SELECT DATE_FORMAT(birthdt, '%m/%d/%Y at %h:%i') FROM people;
+```
+
+### Date Math
+
+to get the number of days between two dates, use DATEDIFF (also accepts DATETIME)
+
+```sql
+SELECT name, birthdate, DATEDIFF(NOW(), birthdate) FROM people;
+```
+
+to add dates, use DATE_ADD, tu substract dates, use DATE_SUB
+
+```sql
+SELECT birthdt, DATE_ADD(birthdt, INTERVAL 1 MONTH) FROM people;
+SELECT birthdt, DATE_ADD(birthdt, INTERVAL 10 SECOND) FROM people;
+SELECT birthdt, DATE_ADD(birthdt, INTERVAL 3 QUARTER) FROM people;
+```
+
+we can also use + and -
+
+```sql
+SELECT birthdt, birthdt + INTERVAL 1 MONTH FROM people;
+SELECT birthdt, birthdt - INTERVAL 5 MONTH FROM people;
+SELECT birthdt, birthdt + INTERVAL 15 MONTH + INTERVAL 10 HOUR FROM people;
+```
+
+### TIMESTAMPS
+
+TIMESTAMP is also a datatype, it stores date and time like DATETIME but the range is smaller (from 1970 to 2038) and it takes half the storage space
+
+typically, use DATETIME for everything, except this
+
+```sql
+CREATE TABLE comments (
+    content VARCHAR(100),
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+INSERT INTO comments (content) VALUES('lol what a funny article');
+INSERT INTO comments (content) VALUES('I found this offensive');
+INSERT INTO comments (content) VALUES('Ifasfsadfsadfsad');
+
+SELECT * FROM comments ORDER BY created_at DESC;
+```
+
+changed_at stores a time stamp and is updated each time the row is changed
+
+```sql
+CREATE TABLE comments2 (
+    content VARCHAR(100),
+    changed_at TIMESTAMP DEFAULT NOW() ON UPDATE NOW()
+);
+
+INSERT INTO comments2 (content) VALUES('dasdasdasd');
+INSERT INTO comments2 (content) VALUES('lololololo');
+INSERT INTO comments2 (content) VALUES('I LIKE CATS AND DOGS');
+
+UPDATE comments2 SET content='THIS IS NOT GIBBERISH' WHERE content='dasdasdasd';
+
+SELECT * FROM comments2 ORDER BY changed_at;
+```
+
+### Challenge
+
+1. fill in the blanks, price always < 1 million
+
+```sql
+CREATE TABLE inventory(
+  item_name ____,
+  price ____,
+  quantity ____
+);
+```
+
+- answer
+
+```sql
+CREATE TABLE inventory(
+  item_name VARCHAR(100),
+  price DECIMAL(8,2),
+  quantity INT
+);
+```
+
+1. print out the current time, date and day of the week (the nr), the name of the day of the week
+
+- answer
+
+```sql
+SELECT CURDATE();
+SELECT CURTIME();
+SELECT DAYOFWEEK(NOW()), DAYNAME(NOW());
+```
+
+1. print out the current day and time using the format mm/dd/yyyy
+
+- answer
+
+```sql
+SELECT DATE_FORMAT(NOW(), '%m/%d/%Y');
+```
+
+or CURDATE() instead of NOW()
+
+1. print out the current day and time using the format "April 1st at 10:18"
+
+- answer
+
+```sql
+SELECT DATE_FORMAT(NOW(), '%M %D at %h:%i');
+```
+
+1. create a tweets table that stores the tweet content, the username, the time it was created
+
+- answer
+
+```sql
+CREATE TABLE tweets(
+  tweet VARCHAR(100),
+  username VARCHAR(20),
+  created_at TIMESTAMP DEFAULT NOW()
+),
+```
