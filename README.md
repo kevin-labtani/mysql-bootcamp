@@ -1399,3 +1399,231 @@ CREATE TABLE tweets(
   created_at TIMESTAMP DEFAULT NOW()
 ),
 ```
+
+## Logical Operators
+
+### Not Equal
+
+to get all the books where the released year isn't 2017
+
+```sql
+SELECT
+  title, released_year
+FROM books
+WHERE released_year != 2017;
+```
+
+### Not Like
+
+to get all the books where the author's last name doesn't start with a "G"
+
+```sql
+SELECT
+  title, author_lname
+FROM books
+WHERE author_lname NOT LIKE "G%";
+```
+
+### Greater Than
+
+to get the title and page count for the books with more than 300 pages
+
+```sql
+SELECT
+  title, pages
+FROM books
+WHERE pages > 300;
+```
+
+greather than equal or equal to also exists, >=
+
+nb:
+
+```sql
+SELECT "a" > "b";
+SELECT "A" > "a";
+SELECT "A" < "a";
+```
+
+all return false ("A"="a" for MySQL; and "b">"a")
+
+### Less Than
+
+to get the title and released year for all books released before 2015
+
+```sql
+SELECT
+  title, released_year
+FROM books
+WHERE released_year < 2015;
+```
+
+less than equal or equal to also exists, <=
+
+### AND
+
+&&/AND is the logical AND
+
+to select books written by Dave Eggers published after the year 2010
+
+```sql
+SELECT
+  *
+FROM books
+WHERE released_year > 2010 AND author_lname = "Eggers" AND author_fname = "Dave";
+```
+
+### OR
+
+||/OR is the logical OR
+
+to select books written by Eggers or published after the year 2010
+
+```sql
+SELECT
+  *
+FROM books
+WHERE released_year > 2010 || author_lname = "Eggers";
+```
+
+### Between
+
+to select things based of a lower and upper range, we use BETWEEN
+nb: BETWEEN is inclusive of its two bounds!!
+
+to select all books published between 2001 and 2017 inclusive
+
+```sql
+SELECT
+  *
+FROM books
+WHERE released_year BETWEEN 2001 AND 2017;
+```
+
+it's the same as
+
+```sql
+SELECT
+  *
+FROM books
+WHERE released_year >= 2001 && released_year <= 2017;
+```
+
+NOT BETWEEN is also a thing:
+
+to select all books not published between 2001 and 2017 inclusive
+
+```sql
+SELECT
+  *
+FROM books
+WHERE released_year NOT BETWEEN 2001 AND 2017;
+```
+
+#### CAST()
+
+to explicitely convert from one datatype to another, use CAST()  
+to compare a DATETIME to a DATE value, we should cast the DATE value to a DATETIME value first  
+to convert the string "2017-05-02" to a DATETIME, use
+
+```sql
+SELECT CAST("2017-05-02" AS DATETIME);
+```
+
+### IN & NOT IN
+
+to check if a value is in a specific set of values, use IN
+
+to select all the books written by Carver, Lahiri or Smith, use
+
+```sql
+SELECT
+  *
+FROM books
+WHERE author_lname IN ("Carver", "Lahiri", "Smith");
+```
+
+we could also use multiple OR statements
+
+to select all the books not written by Carver, Lahiri or Smith, use
+
+```sql
+SELECT
+  *
+FROM books
+WHERE author_lname NOT IN ("Carver", "Lahiri", "Smith");
+```
+
+### Case Statements
+
+we can write case statements in MySQL with CASE..END
+
+to return the title, released_year and a "genre" column where the genre is 'Modern Lit' for books written from 2000 and '20th Century Lit' for books written before
+
+```sql
+SELECT title, released_year,
+       CASE
+         WHEN released_year >= 2000 THEN 'Modern Lit'
+         ELSE '20th Century Lit'
+       END AS GENRE
+FROM books;
+```
+
+to return the title, stock_quantity and a "stock" column where the stock is one star for book with 50 or less stock, 2 stars for books with 51 to 100 stock and 3 stars for books with more stock
+
+```sql
+SELECT title, stock_quantity,
+    CASE
+        WHEN stock_quantity BETWEEN 0 AND 50 THEN '*'
+        WHEN stock_quantity BETWEEN 51 AND 100 THEN '**'
+        ELSE '***'
+    END AS STOCK
+FROM books;
+```
+
+or
+(takes advantage of order of execution)
+
+```sql
+SELECT title, stock_quantity,
+    CASE
+        WHEN stock_quantity <= 50 THEN '*'
+        WHEN stock_quantity <= 100 THEN '**'
+        ELSE '***'
+    END AS STOCK
+FROM books;
+```
+
+### Challenge
+
+1. write the SQL that returns
+
+- answer
+
+```sql
+
+```
+
+1. write the SQL that returns
+
+- answer
+
+```sql
+
+```
+
+1. write the SQL that returns
+
+- answer
+
+```sql
+
+```
+
+1. write the SQL that returns
+
+- answer
+
+```sql
+
+```
