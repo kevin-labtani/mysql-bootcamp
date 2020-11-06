@@ -1596,34 +1596,72 @@ FROM books;
 
 ### Challenge
 
-1. write the SQL that returns
+1. write the SQL that returns all books written by eggers or chabon
 
 - answer
 
 ```sql
-
+SELECT
+  title, author_lname
+FROM books
+WHERE author_lname in ('Eggers', 'Chabon');
 ```
 
-1. write the SQL that returns
+1. write the SQL that returns all book swritten by Lahiri published after 2000
 
 - answer
 
 ```sql
-
+SELECT
+  title, author_lname
+FROM books
+WHERE author_lname = "Lahiri" AND released_year > 2000;
 ```
 
-1. write the SQL that returns
+1. write the SQL that returns all books with page counts between 100 and 200
 
 - answer
 
 ```sql
-
+SELECT
+  title
+FROM books
+WHERE pages BETWEEN 100 AND 200;
 ```
 
-1. write the SQL that returns
+1. write the SQL that returns all books where the author_lname starts with "C" or "S"
 
 - answer
 
 ```sql
+SELECT
+  title, author_lname
+FROM books
+WHERE author_lname LIKE "C%" OR author_lname LIKE "S%";
+```
 
+or
+
+```sql
+SELECT
+  title, author_lname
+FROM books
+WHERE SUBSTR(author_lname,1,1) IN("C", "S");
+```
+
+1. write the SQL that returns the title, the author_lname and a "type" column where type is "Short Stories" if the title contains "stories", "Memoir" if the title contains "Just Kids" or "A heartbreaking Work", and "Novel" for everything else
+
+- answer
+
+```sql
+SELECT
+  title,
+  author_lname,
+  CASE
+      WHEN title LIKE "%stories%" THEN "Short Stories"
+      WHEN title LIKE "%A Heartbreaking Work%" 
+        OR title LIKE "%Just Kids%" THEN "Memoir"
+      ELSE "Novel"
+      END AS "type"
+FROM books;
 ```
