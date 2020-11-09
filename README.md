@@ -207,7 +207,7 @@ SHOW WARNINGS;
 
 nb: if we screw something up eg. try to set a person's age to a string when it expects an INT, well get a wanring and the age will be set automatically to the default value
 
-### NULL and NOT_NULL
+### NULL and NOT NULL
 
 in sql NULL means the value id not known, it does not means zero!  
 NULL being set to YES (as it is by default) means that it's ok if the value for a column is null, eg. we could insert a cat with just a name in our DB even though the table has columns for name and age, the age will be automatically set to null:
@@ -1659,9 +1659,387 @@ SELECT
   author_lname,
   CASE
       WHEN title LIKE "%stories%" THEN "Short Stories"
-      WHEN title LIKE "%A Heartbreaking Work%" 
+      WHEN title LIKE "%A Heartbreaking Work%"
         OR title LIKE "%Just Kids%" THEN "Memoir"
       ELSE "Novel"
       END AS "type"
 FROM books;
 ```
+
+## One to Many Relationship
+
+We'll be using the customers & orders db form now on.
+
+eg. of One to one: one manager manages one department
+eg. of One to Many: one book has many reviews
+eg. of Many to Many: many books have many authors
+
+### Basics
+
+One Customer has Many Orders but One Order is associated with on eOne Customer
+
+see `customer.sql` for the tables and all the data inserted
+
+```sql
+CREATE TABLE customers(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    email VARCHAR(100)
+);
+
+CREATE TABLE orders(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_date DATE,
+    amount DECIMAL(8,2),
+    customer_id INT,
+    FOREIGN KEY(customer_id) REFERENCES customers(id)
+);
+```
+
+```sql
+INSERT INTO customers (first_name, last_name, email)
+VALUES ('Boy', 'George', 'george@gmail.com');
+
+INSERT INTO orders (order_date, amount, customer_id)
+VALUES ('2016/02/10', 99.99, 1);
+```
+
+keys don't have to be id's but they almost always are
+
+to get the orders placed by Boy george, we could get his id then select the orders based on his id
+
+```sql
+SELECT * FROM orders
+WHERE customer_id =
+(
+  SELECT id FROM customers
+  WHERE last_name="George"
+);
+```
+
+Joins allows us to take two tables and stick them together in a meaningful way
+
+### Cross Join
+
+cross join is the most basic join, not really used
+
+this will return a combination of every row from the two tables, the result being the number of rows in the first table multiplied by the number of rows in the second. the join is implicit
+
+```sql
+SELECT * FROM customers, orders;
+```
+
+extract, with just the first customer:
+
+| id  | first_name | last_name | email            | id  | order_date | amount | customer_id |
+| --- | ---------- | --------- | ---------------- | --- | ---------- | ------ | ----------- |
+| 1   | Boy        | George    | george@gmail.com | 1   | 2016-02-10 | 99.99  | 1           |
+| 1   | Boy        | George    | george@gmail.com | 2   | 2017-11-11 | 35.50  | 1           |
+| 1   | Boy        | George    | george@gmail.com | 3   | 2014-12-12 | 800.67 | 2           |
+| 1   | Boy        | George    | george@gmail.com | 4   | 2015-01-03 | 12.50  | 2           |
+| 1   | Boy        | George    | george@gmail.com | 5   | 1999-04-11 | 450.25 | 5           |
+
+it is pretty meaningless
+
+### Inner Join
+
+#### Implicit Inner Join
+
+to get the first name and last name for every user who placed an order, along with that order data, we use
+
+```sql
+SELECT first_name, last_name, order_date, amount
+FROM customers, orders
+    WHERE customers.id = orders.customer_id;
+```
+
+#### Explicit Inner Join
+
+better, more conventional than the implicit way
+
+```sql
+SELECT first_name, last_name, order_date, amount
+FROM customers
+INNER JOIN orders
+    ON customers.id = orders.customer_id;
+
+SELECT first_name, last_name, order_date, amount
+FROM orders
+INNER JOIN customers
+    ON customers.id = orders.customer_id;
+```
+
+more complex:
+to get the first name and last name for every user who placed an order, along with that order data, ordered by order_date
+
+```sql
+SELECT first_name, last_name, order_date, amount
+FROM customers
+INNER JOIN orders
+    ON customers.id = orders.customer_id
+ORDER BY order_date;
+```
+
+to get the first name, last name, total amount spent as total_spent, grouped by customer and ordered by total amount spent from most to least
+
+```sql
+SELECT
+    first_name,
+    last_name,
+    SUM(amount) AS total_spent
+FROM customers
+INNER JOIN orders
+    ON customers.id = orders.customer_id
+GROUP BY orders.customer_id
+ORDER BY total_spent DESC;
+```
+
+### Left Join
+
+a left join takes everything form the left table, among with any matching records from the right table
+
+```sql
+SELECT * FROM customers
+LEFT JOIN orders
+    ON customers.id = orders.customer_id;
+```
+
+result:
+we get all the customers, and the matching orders when they exist, and NULL values when they don't
+
+| id  | first_name | last_name | email            | id   | order_date | amount | customer_id |
+| --- | ---------- | --------- | ---------------- | ---- | ---------- | ------ | ----------- |
+| 1   | Boy        | George    | george@gmail.com | 1    | 2016-02-10 | 99.99  | 1           |
+| 1   | Boy        | George    | george@gmail.com | 2    | 2017-11-11 | 35.50  | 1           |
+| 2   | George     | Michael   | gm@gmail.com     | 3    | 2014-12-12 | 800.67 | 2           |
+| 2   | George     | Michael   | gm@gmail.com     | 4    | 2015-01-03 | 12.50  | 2           |
+| 5   | Bette      | Davis     | bette@aol.com    | 5    | 1999-04-11 | 450.25 | 5           |
+| 3   | David      | Bowie     | david@gmail.com  | NULL | NULL       | NULL   | NULL        |
+| 4   | Blue       | Steele    | blue@gmail.com   | NULL | NULL       | NULL   | NULL        |
+
+compared with the same query, but an inner join:
+
+| id  | first_name | last_name | email            | id  | order_date | amount | customer_id |
+| --- | ---------- | --------- | ---------------- | --- | ---------- | ------ | ----------- |
+| 1   | Boy        | George    | george@gmail.com | 1   | 2016-02-10 | 99.99  | 1           |
+| 1   | Boy        | George    | george@gmail.com | 2   | 2017-11-11 | 35.50  | 1           |
+| 2   | George     | Michael   | gm@gmail.com     | 3   | 2014-12-12 | 800.67 | 2           |
+| 2   | George     | Michael   | gm@gmail.com     | 4   | 2015-01-03 | 12.50  | 2           |
+| 5   | Bette      | Davis     | bette@aol.com    | 5   | 1999-04-11 | 450.25 | 5           |
+
+to get the first name, last name, total amount spent as total_spent, grouped by customer and ordered by total amount spent from most to least, but also including the customers who don't have an order yet
+
+```sql
+SELECT
+    first_name,
+    last_name,
+    IFNULL(SUM(amount), 0) AS total_spent
+FROM customers
+LEFT JOIN orders
+    ON customers.id = orders.customer_id
+GROUP BY customers.id
+ORDER BY total_spent DESC;
+```
+
+### Right Join
+
+a right join takes everything form the right table, among with any matching records from the left table
+
+```sql
+SELECT * FROM customers
+RIGHT JOIN orders
+    ON customers.id = orders.customer_id;
+```
+
+result:
+we get all the orders, and the matching customers when they exist, and NULL values when they don't
+
+| id  | first_name | last_name | email            | id  | order_date | amount | customer_id |
+| --- | ---------- | --------- | ---------------- | --- | ---------- | ------ | ----------- |
+| 1   | Boy        | George    | george@gmail.com | 1   | 2016-02-10 | 99.99  | 1           |
+| 1   | Boy        | George    | george@gmail.com | 2   | 2017-11-11 | 35.50  | 1           |
+| 2   | George     | Michael   | gm@gmail.com     | 3   | 2014-12-12 | 800.67 | 2           |
+| 2   | George     | Michael   | gm@gmail.com     | 4   | 2015-01-03 | 12.50  | 2           |
+| 5   | Bette      | Davis     | bette@aol.com    | 5   | 1999-04-11 | 450.25 | 5           |
+
+since we don't have any order without an existing customer, it's the same as an inner join in this case; if we had orders without matching customers, we'd have NULL values for customers values where a matching customer doesn't exist
+
+### ON DELETE CASCADE
+
+we can use ON DELETE CASCADE to automatically delete the orders associated with a customer when that customer is deleted
+
+see `customer2.sql` for the tables and all the data inserted
+
+```sql
+CREATE TABLE customers(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    email VARCHAR(100)
+);
+
+CREATE TABLE orders(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_date DATE,
+    amount DECIMAL(8,2),
+    customer_id INT,
+    FOREIGN KEY(customer_id)
+        REFERENCES customers(id)
+        ON DELETE CASCADE
+);
+```
+
+### Right vs Left Joins
+
+those two are identical:  
+(except the customers data is presented first with the first query, and the orders data is presented first with the second query)
+
+```sql
+SELECT * FROM customers
+LEFT JOIN orders
+    ON customers.id = orders.customer_id;
+
+SELECT * FROM orders
+RIGHT JOIN customers
+    ON customers.id = orders.customer_id;
+```
+
+so are those:
+
+```sql
+SELECT * FROM orders
+LEFT JOIN customers
+    ON customers.id = orders.customer_id;
+
+SELECT * FROM customers
+RIGHT JOIN orders
+    ON customers.id = orders.customer_id;
+```
+
+### Challenge
+
+1. write the SQL that create the tables:
+
+- students
+
+  - id
+  - first_name
+
+- papers
+
+  - title
+  - grade
+  - student_id : foreign key based on student's id, deleting a student should also delete all his papers
+
+- answer
+
+```sql
+CREATE TABLE students(
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  first_name VARCHAR(100)
+);
+
+CREATE TABLE papers(
+  title VARCHAR(100),
+  grade INT,
+  student_id INT,
+  FOREIGN KEY(student_id)
+    REFERENCES students(id)
+    ON DELETE CASCADE
+);
+```
+
+data to insert in:
+
+```sql
+INSERT INTO students (first_name) VALUES
+('Caleb'),
+('Samantha'),
+('Raj'),
+('Carlos'),
+('Lisa');
+
+INSERT INTO papers (student_id, title, grade ) VALUES
+(1, 'My First Book Report', 60),
+(1, 'My Second Book Report', 75),
+(2, 'Russian Lit Through The Ages', 94),
+(2, 'De Montaigne and The Art of The Essay', 98),
+(4, 'Borges and Magical Realism', 89);
+```
+
+1. write the SQL that returns, for every paper, the name of the student, the title of the paper and the grade, ordered by grade, desc.
+
+- answer
+
+```sql
+SELECT first_name, title, grade
+FROM students
+INNER JOIN papers
+  ON students.id = papers.student_id
+ORDER BY grade DESC;
+```
+
+right join works too as we don't have a single paper without a related student
+
+1. write the SQL that returns, for every student, the name of the student, the title of the paper they wrote and the grade (ie. also return the student that don't have a single paper)
+
+- answer
+
+```sql
+SELECT first_name, title, grade
+FROM students
+LEFT JOIN papers
+  ON students.id = papers.student_id;
+```
+
+1. write the SQL that returns, for every student, the name of the student, the title of the paper they wrote and the grade (ie. also return the student that don't have a single paper, but this time the grade should be 0 and the title should be "missing")
+
+- answer
+
+```sql
+SELECT
+  first_name,
+  IFNULL(title,"missing") AS title,
+  IFNULL(grade, 0) AS grade
+FROM students
+LEFT JOIN papers
+  ON students.id = papers.student_id;
+
+```
+
+1. write the SQL that returns the name and their average grade, ordered by grade, should be 0 for student who didn't turn a paper in.
+
+- answer
+
+```sql
+SELECT
+  first_name,
+  IFNULL(AVG(grade), 0) AS average_grade
+FROM students
+LEFT JOIN papers
+  ON students.id = papers.student_id
+GROUP BY students.id
+ORDER BY average_grade DESC;
+```
+
+1. write the SQL that returns the name, their average grade (, should be 0 for student who didn't turn a paper in) and a column passing_status that is "PASSING" for student whose avg grade is 75 or higher and "FAILING" otherwise
+
+- answer
+
+```sql
+SELECT
+  first_name,
+  IFNULL(AVG(grade), 0) AS average_grade,
+  CASE
+    WHEN AVG(grade) >= 75 THEN "PASSING"
+    ELSE "FAILING"
+  END AS passing_status
+FROM students
+LEFT JOIN papers
+  ON students.id = papers.student_id
+GROUP BY students.id
+ORDER BY average_grade DESC;
+```
+
+nb: NULL >= 75 returns NULL; we could catch NULL by adding an extra statement to our case, `WHEN AVG(grade) IS NULL THEN "FAILING"`
