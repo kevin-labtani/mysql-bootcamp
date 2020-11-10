@@ -2057,3 +2057,158 @@ ORDER BY average_grade DESC;
 nb: NULL >= 75 returns NULL; we could catch NULL by adding an extra statement to our case, `WHEN AVG(grade) IS NULL THEN "FAILING"`
 
 ## Many to Many Relationship
+
+we'll use the data in `tvseries.sql` for this part
+
+examples: many books can have many authors, many stidents can have many classes, many blog posts can have many tags
+
+we'll be using a tv show reviewing application as our example, we'll have:
+
+- a Series table (id, title, released_year, genre)
+- a Reviewers table (id, first_name, last_name)
+- a Reviews table that's a join/union table of the two others (id, rating, series_id, reviewer_id)
+
+the union table looks like this:
+
+```sql
+CREATE TABLE reviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    rating DECIMAL(2,1),
+    series_id INT,
+    reviewer_id INT,
+    FOREIGN KEY(series_id) REFERENCES series(id),
+    FOREIGN KEY(reviewer_id) REFERENCES reviewers(id)
+);
+```
+
+example data:
+
+| id  | rating | series_id | reviewer_id |
+| --- | ------ | --------- | ----------- |
+| 1   | 8.0    | 1         | 1           |
+| 2   | 7.5    | 1         | 2           |
+| 3   | 8.5    | 1         | 3           |
+| 4   | 7.7    | 1         | 4           |
+| 5   | 8.9    | 1         | 5           |
+| 6   | 8.1    | 2         | 1           |
+| 7   | 6.0    | 2         | 4           |
+| 8   | 8.0    | 2         | 3           |
+
+it's really hard to read, so we'll need to use joins to make effective use of it.
+
+### Challenge
+
+1. write the SQL that returns the title and the rating, ordered by title; we only want series that have been rated
+
+- answer
+
+```sql
+SELECT
+  title,
+  rating
+FROM series
+INNER JOIN reviews
+  ON series.id = reviews.series_id
+ORDER BY title;
+```
+
+INNER or LEFT JOIN would work
+
+1. write the SQL that returns the title and the average rating (as avg_rating), ordered by average rating
+
+- answer
+
+```sql
+SELECT
+  title,
+  AVG(rating) as avg_rating
+FROM series
+INNER JOIN reviews
+  ON series.id = reviews.series_id
+GROUP BY series.id
+ORDER BY avg_rating;
+```
+
+1. write the SQL that returns the first_name, last_name and the rating of every review they've given
+
+- answer
+
+```sql
+SELECT
+  first_name,
+  last_name,
+  rating
+FROM reviewers
+INNER JOIN reviews
+  ON reviewers.id = reviews.reviewer_id;
+```
+
+`FROM reviews INNER JOIN reviewers` would give the same results
+
+1. write the SQL that returns the unreviewed series (is series with no rating) as unreviewed_series
+
+- answer
+
+```sql
+SELECT
+  title AS unreviewed_series
+FROM series
+LEFT JOIN reviews
+  ON series.id = reviews.series_id
+WHERE rating IS NULL;
+```
+
+1. write the SQL that returns the genre and the the average rating as avg_rating rounded to 2 decimals
+
+- answer
+
+```sql
+SELECT
+  genre,
+   ROUND(AVG(rating), 2) AS avg_rating
+FROM series
+INNER JOIN reviews
+  ON series.id = reviews.series_id
+GROUP BY genre;
+```
+
+1. write the SQL that returns the first_name, last_name, rating count, minimum, maximum and average as COUNT, MIN, MAX, AVG and the status which is ACTIVE if they have any reviews, INACTIVE otherwise( so, we also want reviewers who don't have any reviews)
+
+- answer
+
+```sql
+SELECT
+  first_name,
+  last_name,
+  COUNT(rating) AS "COUNT",
+  IFNULL(MIN(rating), 0) AS "MIN",
+  IFNULL(MAX(rating), 0) AS "MAX",
+  IFNULL(AVG(rating), 0) AS "AVG",
+  CASE
+    WHEN COUNT(rating) >= 1 THEN "ACTIVE"
+    ELSE "INACTIVE"
+  END AS "STATUS"
+FROM reviewers
+LEFT JOIN reviews
+  ON reviewers.id = reviews.reviewer_id
+GROUP BY reviewers.id;
+```
+
+short version of the CASE: `IF(Count(rating) >= 1, 'ACTIVE', 'INACTIVE') AS STATUS`
+
+1. write the SQL that returns for every review in the db, the title of show, the rating and the reviewer's full name (as reviewer)
+
+- answer
+
+```sql
+SELECT
+  title,
+  rating,
+  CONCAT(first_name,' ', last_name) AS reviewer
+FROM reviewers
+INNER JOIN reviews
+  ON reviewers.id = reviews.reviewer_id
+INNER JOIN series
+  ON series.id = reviews.series_id
+ORDER BY title;
+```
