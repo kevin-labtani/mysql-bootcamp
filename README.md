@@ -6,6 +6,18 @@ Projet créé le 30 Octobre 2020, dans le but de rafraichir ma connaissance de M
 
 Le projet est basé sur le cours de MySQL de [Colt Steele](https://www.udemy.com/course/the-ultimate-mysql-bootcamp-go-from-sql-beginner-to-expert/)
 
+- [Introduction](#Database-vs-Database-Management-System)
+- [Creating Databases and tables](#Creating-Databases-and-Tables)
+- [Inserting Data](#Inserting-Data)
+- [CRUD Operations](#CRUD-Operations)
+- [String Functions](#String-Functions)
+- [Refining Selections](#Refining-Selections)
+- [Aggregate Functions](#Aggregate-Functions)
+- [Data Types](#Data-Types)
+- [Logical Operators](#Logical-Operators)
+- [One to Many Relationship](#One-to-Many-Relationship)
+- [Many to Many Relationship](#Many-to-Many-Relationship)
+
 ## Database vs Database Management System
 
 A database is a structured set of commpurterized data with an accessible interface
@@ -16,7 +28,7 @@ MySQL, PostgreSQL,...are actually a DBMS
 
 SQL is the language we use to "talk" to our db
 
-## Basic CLI Commands
+### Basic CLI Commands
 
 to get the help:
 
@@ -36,7 +48,7 @@ to show user hostname:
 select @@hostname;
 ```
 
-## Creating Databases and tables
+## Creating Databases and Tables
 
 to create a DB (better to use snake cases):
 
@@ -2043,3 +2055,5 @@ ORDER BY average_grade DESC;
 ```
 
 nb: NULL >= 75 returns NULL; we could catch NULL by adding an extra statement to our case, `WHEN AVG(grade) IS NULL THEN "FAILING"`
+
+## Many to Many Relationship
