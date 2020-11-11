@@ -17,6 +17,7 @@ Le projet est basé sur le cours de MySQL de [Colt Steele](https://www.udemy.com
 - [Logical Operators](#Logical-Operators)
 - [One to Many Relationship](#One-to-Many-Relationship)
 - [Many to Many Relationship](#Many-to-Many-Relationship)
+- [Case Study: Instagram](#Case-Study:-Instagram)
 
 ## Database vs Database Management System
 
@@ -2211,4 +2212,174 @@ INNER JOIN reviews
 INNER JOIN series
   ON series.id = reviews.series_id
 ORDER BY title;
+```
+
+## Case Study: Instagram
+
+see `instagram-clone.sql` for the data
+
+we're going to store the following entities:
+
+- users
+- photos
+- comments
+- likes
+- hashtags
+- followers/followees
+
+### Users Schema
+
+| USERS      |
+| ---------- |
+| id         |
+| username   |
+| created_at |
+
+created_at is TIMESTAMP DEFAULT NOW()
+
+### Photos Schema
+
+| PHOTOS     |
+| ---------- |
+| id         |
+| image_url  |
+| user_id    |
+| created_at |
+
+url is VARCHAR(255)
+
+### Comments Schema
+
+| COMMENTS     |
+| ------------ |
+| id           |
+| comment_text |
+| user_id      |
+| photo_id     |
+| created_at   |
+
+text is a MySQL keyword, best to not use as name for a column
+
+### Likes Schema
+
+| LIKES      |
+| ---------- |
+| user_id    |
+| photo_id   |
+| created_at |
+
+we didn't add an id to likes as we don't need one, we won't be refering to likes anywhere.  
+To ensure only one like per user per photo - we want a unique combination of the two - we can use `PRIMARY KEY(user_id, photo_id)`, it'll stop us from inserting two likes that are the same (ie. same user and photo id); MySQL will create a primary key that's a combination of the two with a dash in between (eg. 1-1)
+
+### Relationship Schema
+
+(ie. followers/followees)
+nb. the people you follow might not following you back, they are one-way relationships
+
+| LIKES       |
+| ----------- |
+| follower_id |
+| followee_id |
+| created_at  |
+
+the foreign keys are:  
+`FOREIGN KEY(follower_id) REFERENCES users(id)`  
+`FOREIGN KEY(followee_id) REFERENCES users(id)`
+
+we're using `PRIMARY KEY(follower_id, followee_id)` for uniqueness (you can't follow someone twice)
+
+### Hashtags Schemas
+
+one photo can have 10+ hashtags
+
+3 potential impementations:
+
+- add a tag column to our photos table that's a VARCHAR, eg. "#cat#pets#animals"
+  - (+) easy to implement
+  - (-) limited number of tags can be stored
+  - (-) cannot store additional info
+  - (-) have to be careful with seraching
+- use two tables, our current photos table and a tags table with the columns tag_name and photo_id
+  - (+) unlimited number of tags
+  - (-) slower than previous solution
+- use three tables, our photos table, a tags table with tag_name and id, and a photos_tags join/union table with the photo_id and the tag_id (both foreign keys from the other two tables)
+  - (+) unlimited number of tags
+  - (+) can add additional info
+  - (-) more work when inserting/updating
+  - (-) have to worry about orphans
+
+we'll go with the third one
+
+| TAGS       |
+| ---------- |
+| id         |
+| tag_name   |
+| created_at |
+
+tag_name is a VARCHAR
+
+| PHOTO_TAGS |
+| ---------- |
+| photo_id   |
+| tag_id     |
+| created_at |
+
+we're using `PRIMARY KEY(photo_id, tag_id)` for uniqueness in the photo_tags table
+
+### Challenge
+
+1. write the SQL that returns
+
+- answer
+
+```sql
+
+```
+
+1. write the SQL that returns
+
+- answer
+
+```sql
+
+```
+
+1. write the SQL that returns
+
+- answer
+
+```sql
+
+```
+
+1. write the SQL that returns
+
+- answer
+
+```sql
+
+```
+
+1. write the SQL that returns
+
+- answer
+
+```sql
+
+```
+
+1. write the SQL that returns
+
+- answer
+
+```sql
+
+```
+
+1. write the SQL that returns
+
+- answer
+
+```sql
+
 ```
