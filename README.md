@@ -2328,58 +2328,134 @@ we're using `PRIMARY KEY(photo_id, tag_id)` for uniqueness in the photo_tags tab
 
 ### Challenge
 
-1. write the SQL that returns
+run `source ig_clone_data.sql;` to populate the db
+
+1. write the SQL that returns the five oldest users
 
 - answer
 
 ```sql
-
+SELECT
+  username, created_at
+FROM users
+ORDER BY created_at
+LIMIT 5;
 ```
 
-1. write the SQL that returns
+1. what day of the week do most users register on?
 
 - answer
 
 ```sql
-
+SELECT
+  DAYNAME(created_at),
+  count(created_at)
+FROM users
+GROUP BY DAYOFWEEK(created_at)
+ORDER BY count(created_at) DESC;
 ```
 
-1. write the SQL that returns
+there are two days, Sunday and Thursday
+
+- correction
+
+```sql
+SELECT
+  DAYNAME(created_at) AS day,
+  count(*) AS total
+FROM users
+GROUP BY day
+ORDER BY total DESC;
+```
+
+1. find the users who have never posted a photo
 
 - answer
 
 ```sql
-
+SELECT username
+FROM users
+LEFT JOIN photos
+  ON users.id = photos.user_id
+WHERE photos.id IS NULL;
 ```
 
-1. write the SQL that returns
+could do `WHERE photos.user_id IS NULL;`, `WHERE photos.image_url IS NULL;`, ...
+
+1. we're runnig a contest to see who can get the most likes on a single photo, find out who won and their photo!
+
+- correction
+
+```sql
+SELECT
+    username,
+    photos.id,
+    photos.image_url,
+    COUNT(*) AS total
+FROM photos
+INNER JOIN likes
+    ON likes.photo_id = photos.id
+INNER JOIN users
+    ON photos.user_id = users.id
+GROUP BY photos.id
+ORDER BY total DESC
+LIMIT 1;
+```
+
+1. how many times does the average user post?
+
+- solution
+
+```sql
+SELECT (SELECT COUNT(*) FROM photos) / (SELECT COUNT(*) FROM users) AS avg;
+```
+
+1. what are the top 5 most commonly used hashtags?
 
 - answer
 
 ```sql
-
+SELECT
+  tag_name,
+  tag_id,
+  COUNT(*) AS total
+FROM photo_tags
+INNER JOIN tags
+  on tags.id = photo_tags.tag_id
+GROUP BY tag_id
+ORDER BY total DESC
+LIMIT 1;
 ```
 
-1. write the SQL that returns
+1. find users who have liked every single photos on the site, we think they're bots!
 
 - answer
 
 ```sql
-
+SELECT
+  username,
+  count(*) as nr_likes
+FROM users
+INNER JOIN likes
+  on likes.user_id = users.id
+WHERE nr_likes = (SELECT COUNT(*) FROM photos)
+GROUP BY likes.user_id;
 ```
 
-1. write the SQL that returns
+WHERE doesn't work because WHERE clauses go before (execute before) GROUP BY, we get an error "Unknown column 'nr_likes' in 'where clause'"  
+we have to use `HAVING`:
 
-- answer
+- correction
 
 ```sql
-
+SELECT
+  username,
+  count(*) as nr_likes
+FROM users
+INNER JOIN likes
+  on likes.user_id = users.id
+GROUP BY likes.user_id
+HAVING nr_likes = (SELECT COUNT(*) FROM photos);
 ```
 
-1. write the SQL that returns
-
-- answer
-
-```sql
-
-```
+The HAVING clause was added to SQL because the WHERE keyword could not be used with aggregate functions.
