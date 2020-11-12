@@ -17,6 +17,7 @@ Le projet est basé sur le cours de MySQL de [Colt Steele](https://www.udemy.com
 - [Logical Operators](#Logical-Operators)
 - [One to Many Relationship](#One-to-Many-Relationship)
 - [Many to Many Relationship](#Many-to-Many-Relationship)
+- [Database Triggers](#Database-Triggers)
 - [Case Study: Instagram](#Case-Study:-Instagram)
 
 ## Database vs Database Management System
@@ -2212,6 +2213,101 @@ INNER JOIN reviews
 INNER JOIN series
   ON series.id = reviews.series_id
 ORDER BY title;
+```
+
+## Database Triggers
+
+Database Triggers are SQL statements that are automatically run when a specific table is changed
+
+We can use them for validating data (not the best use of triggers, just do it in the app code), or for manipulating other tables relative to the trigger table
+
+the syntax is
+
+```sql
+CREATE TRIGGER trigger_name
+  trigger_time trigger_event ON table_name FOR EACH ROW
+  BEGIN
+  ---
+  END;
+```
+
+| trigger_time | trigger_event |
+| ------------ | ------------- |
+| BEFORE       | INSERT        |
+| AFTER        | UPDATE        |
+|              | DELETE        |
+
+use `SHOW TRIGGERS;` to list triggers
+
+use `DROP TRIGGER trigger_name` to delete triggers
+
+nb: since triggers happen behind the scenes, it makes debugging hard...
+
+### Validation Trigger Example
+
+```sql
+DELIMITER $$
+
+CREATE TRIGGER must_be_adult
+  BEFORE INSERT ON users FOR EACH ROW
+  BEGIN
+    IF NEW.age < 18
+    THEN
+      SIGNAL SQLSTATE "45000"
+        SET MESSAGE_TEXT = "Must be an adult!";
+    END IF;
+  END;
+$$
+
+DELIMITER ;
+```
+
+DELIMITER changes the delimiter type from ";" to "\$\$"
+
+NEW is a placeholder refering to the dtata that's going to be inserted, there's also an OLD for when we delete data
+
+`SIGNAL SQLSTATE "45000" SET MESSAGE_TEXT = "Must be an adult!";` is used to throw a generic error and then set the error msg
+
+### Preventing Insta Self-Follows Trigger Example
+
+```sql
+DELIMITER $$
+
+CREATE TRIGGER prevent_selffollows
+  BEFORE INSERT ON follows FOR EACH ROW
+  BEGIN
+    IF NEW.follower_id = NEW.followee_id
+    THEN
+      SIGNAL SQLSTATE "45000"
+        SET MESSAGE_TEXT = "You can't follow yourself!";
+    END IF;
+  END;
+$$
+
+DELIMITER ;
+```
+
+### Logging Insta Unfollows Trigger Example
+
+```sql
+DELIMITER $$
+
+CREATE TRIGGER capture_unfollow
+  AFTER DELETE ON follows FOR EACH ROW
+  BEGIN
+    INSERT INTO unfollows(follower_id, followee_id)
+    VALUES(OLD.follower_id, OLD.followee_id);
+  END;
+$$
+
+DELIMITER ;
+```
+
+alternate syntax for the insert:
+
+```sql
+SET follower_id = OLD.follower_id,
+    followee_id + OLD.followee_id.
 ```
 
 ## Case Study: Instagram
